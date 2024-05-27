@@ -1,51 +1,65 @@
-const cenario = document.querySelector('.cenario')
-const AtkArea = document.querySelector('#playerAttackArea')
-const playerImg = document.querySelector('#player')
-const alienImg = document.querySelector('.alien')
+const cenario = document.querySelector('.cenario')  // Cenario
 
-const checkBoxBullet = document.querySelector('#checkBoxBullet')
+const playerImg = document.querySelector('#player')  // imagem da nave
+const alienImg = document.querySelectorAll('.alien')  // imagem dos aliens
+
+//BOTÃO DE START  - Va para baixo para acessar a função startGame
 const btnStart = document.querySelector('button')
+
+let position_X  = 0  // posição horizontal
+let position_Y = 0  // posição vertical
+
+ // Score do jogo retorna quantas naves foram destruidas
+let Score_AliensDestroyed = 0 
+
+const rendeScore = setInterval( () =>{ 
+    document.querySelector('#kill-point').innerText = Score_AliensDestroyed
+}, 60)
 
 
 const controls = () => {
 
+    const key = { } // Rastreiar se a tecla foi ou não pressionada
+
+    document.addEventListener('keydown', e => key[ e.keyCode ] = true )   
+    document.addEventListener('keyup', e => key[ e.keyCode ] = false )
+
     const keyUP = 87  // Tecla W 
     const keyDOWN = 83 // Tecla S
-    const keyRIGHT = 68 // Tecla D
-    const keyLEFT = 65 // Tecla A
+    // const keyRIGHT = 68 // Tecla D
+    // const keyLEFT = 65 // Tecla A
     const keyAttack = 74 // Tecla J
+
+
+    const smoothPlayerMovement = () =>{
+        
+        // key [ keycode ] 
+        if( key[keyUP]){
+            position_Y-= 1 
+        }
+        // if( key[keyRIGHT]){
+        //     position_X += 1
+        // }
+        if( key[keyDOWN]){
+            position_Y +=1
+        }
+        // if( key[keyLEFT]){
+        //     position_X -=1
+        // }
+        if( key[keyAttack] ){
+            bullets()        
+        }
+
+        playerImg.style.top = position_Y +'%'  //Movimento vertical da nave.
+        // playerImg.style.left = position_X +'%' //Movimento horizontal da nave .
     
-    let x  = 0
-    let y = 0
-    document.addEventListener('keydown', (e) =>{
-    capture: true
-    let key = e.keyCode 
-        //alert(key)
 
-        switch( key ){
-            case keyUP :y-=4  
-                break
-            case keyRIGHT :x+=4  
-                break
-            case keyDOWN :y+=4 
-                break
-            case keyLEFT :x-=4 
-                break
-            case keyAttack:  player.attack() 
-        }   
-        AtkArea.style.top = y +'%'  //Movimento vertical da nave.
-        AtkArea.style.left = x +'%' //Movimento horizontal da nave .
-    })  
+        requestAnimationFrame( smoothPlayerMovement)
+    } 
+    smoothPlayerMovement()
+    
 }
 
-const player = {
-
-    dano: 1,
-    attack(){
-       return bullets()  
-    }
-
-}
 
 const aliens = () => {  
 
@@ -58,26 +72,23 @@ const aliens = () => {
 
     cenario.appendChild(alien)
     moveAliens(alien)
-
-    const bullet = document.querySelector('.balas')
-    checkBulletCollision(bullet, alien) 
-
+    
+    // checkPlayerCollision( playerImg , alien) 
 }
 
 const moveAliens = (obj) => {
    
     let i = 100
     const move_x = setInterval(() =>{
-
         i-= 1
         obj.style.left = i + '%'
+       
         if (i == 0) {         
             clearInterval(move_x)
             obj.remove()
-        }    
-
-
+        }
     }, 60)
+
 
 }
 
@@ -85,99 +96,147 @@ const bullets = () => {
 
     const bullet = document.createElement('div')
     bullet.className = 'balas'
-    AtkArea.appendChild(bullet)
 
-    const shotAudio = document.createElement('audio')
-    shotAudio.src = './audios/efeitos/shots.mp3'
-    shotAudio.autoplay = true
-
-    bullet.appendChild(shotAudio)
-
-    moveBullets(bullet)
-
-    const aliens = document.querySelector('.alien')
-
-    checkBulletCollision(bullet, aliens) 
+    cenario.appendChild(bullet)
+  
+    bullet.style.left = position_X +'%'   
+    bullet.style.top = position_Y + 7 + '%'
         
 
-}
+    const audio = ()=>{
+        const shotAudio = document.createElement('audio')
+            shotAudio.src = './audios/efeitos/shots.mp3'
+            shotAudio.autoplay = true
+            bullet.appendChild(shotAudio)
+
+    }
+    moveBullets(bullet)
+    audio()
+
+ 
+}               
+
 
 const moveBullets = (obj) =>{
-    let x =0
+
+    // let PlayerPosition = playerImg.getBoundingClientRect().left
+    let x = position_X
+
     const move = setInterval(()=>{
-        x++
+        x+=1
         obj.style.left = x + '%'
 
         if(x == 100){
-            clearInterval(move)
+            clearInterval(move) 
             obj.remove() 
-
+        }
+        else{
+            const aliens = document.querySelectorAll('.alien');  
+            aliens.forEach(alien => 
+                checkBulletCollision(obj, alien)
+                
+            );  // Atribuindo a função de checar colição para cada alien gerado
         }
 
     }, 20)    
 
 }
 
+
+const checkPlayerCollision = (p , a) =>{
+
+    
+    if(!a) {return console.log('nada')} // Verifica se bala ou alien existe
+        
+       
+
+    const playerRect = p.getBoundingClientRect();
+    const alienRect = a.getBoundingClientRect();
+    
+    const player_X = playerRect.left;
+    const player_Y = playerRect.top;
+    const playerWidth = playerRect.width;
+    const playerHeight = playerRect.height;
+     
+    const alien_X = alienRect.left;
+    const alien_Y = alienRect.top;
+    const alienWidth = alienRect.width;
+    const alienHeight = alienRect.height;
+
+    console.log('tudo certo')        
+
+    console.log(`player -> altura: ${playerHeight} largura: ${playerWidth} posição X : ${player_X} posição Y : ${player_Y}`)
+    console.log(`Alien -> altura: ${alienHeight} largura: ${alienWidth} posição X : ${alien_X} posição Y : ${alien_Y}`)
+
+        if( player_X < alien_X + alienWidth && 
+            player_X + playerWidth > alien_X &&
+            player_Y < alien_Y + alienHeight &&
+            player_Y + playerHeight > alien_Y
+        ){
+            gameOver()
+            
+        }
+
+   
+}
+
+
 const checkBulletCollision = ( b, a )=>{
+    
 
-    const bulletLength = b.getBoundingClientRect()
-    const aliensLength = a.getBoundingClientRect()
-    let vidas = 0
+    if(!b || !a) {return } // Verifica se bala ou alien existe
 
-    if( bulletLength.left < aliensLength.right ||
-        bulletLength.right > aliensLength.left ||
-        bulletLength.top < aliensLength.bottom ||
-        bulletLength.bottom > aliensLength.top
+    const bulletRect = b.getBoundingClientRect();
+    const alienRect = a.getBoundingClientRect();
+
+    const bullet_X = bulletRect.left;
+    const bullet_Y = bulletRect.top;
+    const bulletWidth = bulletRect.width;
+    const bulletHeight = bulletRect.height;
+
+    const alien_X = alienRect.left;
+    const alien_Y = alienRect.top;
+    const alienWidth = alienRect.width;
+    const alienHeight = alienRect.height;
+
+
+    // console.log(`Bullet -> altura: ${bulletHeight} largura: ${bulletWidth} posição X : ${bullet_X} posição Y : ${bullet_Y}`)
+    // console.log(`Alien -> altura: ${alienHeight} largura: ${alienWidth} posição X : ${alien_X} posição Y : ${alien_Y}`)
+
+    if( bullet_X < alien_X + alienWidth &&
+        bullet_X + bulletWidth > alien_X &&
+        bullet_Y < alien_Y + alienHeight &&
+        bullet_Y + bulletHeight > alien_Y
     ){
-      vidas--
         
         updateScore()
-        console.log(vidas)
         a.remove()
-
+        b.remove()
     }
-   
+    
  
 }
 
 
-const $_Score = (a) =>{
+const updateScore = () =>{ 
+  
 
+    const audio = () =>{
+        const efeito = document.createElement('audio')  
+        efeito.src = './audios/efeitos/coin.mp3'
+        efeito.autoplay = true
+        document.body.appendChild(efeito) 
 
-    const kills = []
-
-    function addPoint(arr, point){
-
-        arr.push(point)
-
-        const audio = () =>{
-            const efeito = document.createElement('audio')  
-            efeito.src = './audios/efeitos/coin.mp3'
-            efeito.autoplay = true
-            document.body.appendChild(efeito)
-            //alert('audio Ok')
-            efeito.remove()
-        }
-        audio()
-        
-
+        efeito.remove()
     }
-    addPoint(kills, a)
-    const killScore = document.querySelector('#kill-point').innerText = kills                  // <--- INCOMPLETO !!!
-        
+    audio()
+
+    Score_AliensDestroyed +=1
    
-} 
-$_Score(0)
-
-
-function updateScore(){
-    
-    $_Score(1)
-    
 }
 
 
-const gameOver = () =>{
+function gameOver(){
     btnStart.style.display = 'block'
 
     const audio = () =>{
@@ -187,10 +246,13 @@ const gameOver = () =>{
 
     }
     audio()
+    document.querySelectorAll('.alien').forEach(alien => alien.remove());
+    document.querySelectorAll('.balas').forEach(bullet => bullet.remove());
     
 }
-
-btnStart.addEventListener('click' , () =>{
+btnStart.addEventListener('click' , startGame)
+  
+function startGame(){
     btnStart.style.display = 'none' 
 
     const audioStart = () => {
@@ -203,10 +265,14 @@ btnStart.addEventListener('click' , () =>{
     }
     audioStart()
     controls()   // desbloqueia a movimentação 
-    const spawn = setInterval(aliens, 2500)  // Gerador de aliens  
+    const spawn = setInterval(aliens, 1000)  // Gerador de aliens  
+    const collisionCheckInterval = setInterval(() => {
+        const aliens = document.querySelectorAll('.alien');
+        aliens.forEach(alien => checkPlayerCollision(playerImg, alien));
+    }, 100); // Verifica a colisão a cada 100 milissegundos
+}
 
-              
-})
+
 
 
 
