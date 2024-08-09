@@ -18,7 +18,6 @@ const rendeScore = setInterval( () =>{
 
 
 const controls = () => {
-
     const key = { } // Rastreiar se a tecla foi ou não pressionada
 
     document.addEventListener('keydown', e => key[ e.keyCode ] = true )   
@@ -30,9 +29,7 @@ const controls = () => {
     // const keyLEFT = 65 // Tecla A
     const keyAttack = 74 // Tecla J
 
-
     const smoothPlayerMovement = () =>{
-        
         // key [ keycode ] 
         if( key[keyUP]){
             position_Y-= 1 
@@ -47,22 +44,18 @@ const controls = () => {
         //     position_X -=1
         // }
         if( key[keyAttack] ){
-            bullets()        
+            bullets()      
         }
 
         playerImg.style.top = position_Y +'%'  //Movimento vertical da nave.
         // playerImg.style.left = position_X +'%' //Movimento horizontal da nave .
     
-
         requestAnimationFrame( smoothPlayerMovement)
     } 
-    smoothPlayerMovement()
-    
+    smoothPlayerMovement()   
 }
 
-
 const aliens = () => {  
-
     const alien = document.createElement('div')
     alien.className = 'alien'   
 
@@ -72,7 +65,7 @@ const aliens = () => {
 
     cenario.appendChild(alien)
     moveAliens(alien)
-    
+
     // checkPlayerCollision( playerImg , alien) 
 }
 
@@ -83,13 +76,14 @@ const moveAliens = (obj) => {
         i-= 1
         obj.style.left = i + '%'
        
-        if (i == 0) {         
+        if (i === 0) {         
             clearInterval(move_x)
             obj.remove()
+            console.log('saiu da area')
         }
+        
     }, 60)
-
-
+    
 }
 
 const bullets = () => {
@@ -101,7 +95,6 @@ const bullets = () => {
   
     bullet.style.left = position_X +'%'   
     bullet.style.top = position_Y + 7 + '%'
-        
 
     const audio = ()=>{
         const shotAudio = document.createElement('audio')
@@ -113,9 +106,7 @@ const bullets = () => {
     moveBullets(bullet)
     audio()
 
- 
 }               
-
 
 const moveBullets = (obj) =>{
 
@@ -139,16 +130,11 @@ const moveBullets = (obj) =>{
         }
 
     }, 20)    
-
 }
 
-
 const checkPlayerCollision = (p , a) =>{
-
     
-    if(!a) {return console.log('nada')} // Verifica se bala ou alien existe
-        
-       
+    if(!a) {return } // Verifica se bala ou alien existe
 
     const playerRect = p.getBoundingClientRect();
     const alienRect = a.getBoundingClientRect();
@@ -163,23 +149,20 @@ const checkPlayerCollision = (p , a) =>{
     const alienWidth = alienRect.width;
     const alienHeight = alienRect.height;
 
-    console.log('tudo certo')        
+    // console.log('tudo certo')        
 
-    console.log(`player -> altura: ${playerHeight} largura: ${playerWidth} posição X : ${player_X} posição Y : ${player_Y}`)
-    console.log(`Alien -> altura: ${alienHeight} largura: ${alienWidth} posição X : ${alien_X} posição Y : ${alien_Y}`)
+    // console.log(`player -> altura: ${playerHeight} largura: ${playerWidth} posição X : ${player_X} posição Y : ${player_Y}`)
+    // console.log(`Alien -> altura: ${alienHeight} largura: ${alienWidth} posição X : ${alien_X} posição Y : ${alien_Y}`)
 
-        if( player_X < alien_X + alienWidth && 
-            player_X + playerWidth > alien_X &&
-            player_Y < alien_Y + alienHeight &&
-            player_Y + playerHeight > alien_Y
-        ){
-            gameOver()
+    if( player_X < alien_X + alienWidth && 
+        player_X + playerWidth > alien_X &&
+        player_Y < alien_Y + alienHeight &&
+        player_Y + playerHeight > alien_Y
+    ){
+    gameOver()
             
-        }
-
-   
+    }
 }
-
 
 const checkBulletCollision = ( b, a )=>{
     
@@ -199,7 +182,6 @@ const checkBulletCollision = ( b, a )=>{
     const alienWidth = alienRect.width;
     const alienHeight = alienRect.height;
 
-
     // console.log(`Bullet -> altura: ${bulletHeight} largura: ${bulletWidth} posição X : ${bullet_X} posição Y : ${bullet_Y}`)
     // console.log(`Alien -> altura: ${alienHeight} largura: ${alienWidth} posição X : ${alien_X} posição Y : ${alien_Y}`)
 
@@ -213,13 +195,9 @@ const checkBulletCollision = ( b, a )=>{
         a.remove()
         b.remove()
     }
-    
- 
 }
 
-
 const updateScore = () =>{ 
-  
 
     const audio = () =>{
         const efeito = document.createElement('audio')  
@@ -232,31 +210,25 @@ const updateScore = () =>{
     audio()
 
     Score_AliensDestroyed +=1
-   
 }
 
+let gameRunning = false
 
-function gameOver(){
-    btnStart.style.display = 'block'
-
-    const audio = () =>{
-        const instrumental = document.createElement('audio')
-        instrumental.src = './audios/efeitos/gameOver.mp3'
-        instrumental.autoplay = true
-
-    }
-    audio()
-    document.querySelectorAll('.alien').forEach(alien => alien.remove());
-    document.querySelectorAll('.balas').forEach(bullet => bullet.remove());
-    
-}
 btnStart.addEventListener('click' , startGame)
   
 function startGame(){
+    if(gameRunning){
+        return 
+    }
+
+    gameRunning = true
+    // console.log(gameRunning)
+
     btnStart.style.display = 'none' 
 
     const audioStart = () => {
         const instrumental = document.createElement('audio')
+        instrumental.id = 'themeGame'
         instrumental.src = './audios/A Theme For Space (8bit music).mp3'
         instrumental.autoplay = true
         instrumental.loop = true
@@ -266,13 +238,32 @@ function startGame(){
     audioStart()
     controls()   // desbloqueia a movimentação 
     const spawn = setInterval(aliens, 1000)  // Gerador de aliens  
+    
     const collisionCheckInterval = setInterval(() => {
         const aliens = document.querySelectorAll('.alien');
         aliens.forEach(alien => checkPlayerCollision(playerImg, alien));
     }, 100); // Verifica a colisão a cada 100 milissegundos
 }
 
+function gameOver(obj){
 
+    gameRunning = false
+    // console.log(gameRunning)
+
+    btnStart.style.display = 'block'
+
+    const audio = () =>{
+        const instrumental = document.createElement('audio')
+        instrumental.src = './audios/efeitos/gameOver.mp3'
+        instrumental.autoplay = true
+
+    }
+    audio()
+    const audioTheme = document.getElementById('themeGame')
+    audioTheme.remove()
+ 
+    
+}
 
 
 
