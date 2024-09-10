@@ -1,4 +1,4 @@
-# Controls
+# Controles
 W = para cima
 
 S = para baixo
